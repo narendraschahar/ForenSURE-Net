@@ -1,7 +1,13 @@
 from pathlib import Path
 import random
+import argparse
 
-SEED = 42
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--seed", type=int, default=42)
+args = parser.parse_args()
+
+SEED = args.seed
 random.seed(SEED)
 
 cover_dir = Path("data/BOSSBase/cover")
@@ -14,6 +20,7 @@ valid_exts = [".pgm", ".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"]
 cover_images = sorted([p for p in cover_dir.iterdir() if p.suffix.lower() in valid_exts])
 stego_images = sorted([p for p in stego_dir.iterdir() if p.suffix.lower() in valid_exts])
 
+print("Seed:", SEED)
 print("Cover images:", len(cover_images))
 print("Stego images:", len(stego_images))
 
@@ -21,7 +28,6 @@ if len(cover_images) == 0 or len(stego_images) == 0:
     raise ValueError("Both cover and stego folders must contain images.")
 
 min_count = min(len(cover_images), len(stego_images))
-
 cover_images = cover_images[:min_count]
 stego_images = stego_images[:min_count]
 
@@ -31,11 +37,13 @@ stego_samples = [(str(img), 1) for img in stego_images]
 random.shuffle(cover_samples)
 random.shuffle(stego_samples)
 
+
 def split_class(samples):
     n = len(samples)
     train_end = int(0.70 * n)
     val_end = int(0.85 * n)
     return samples[:train_end], samples[train_end:val_end], samples[val_end:]
+
 
 cover_train, cover_val, cover_test = split_class(cover_samples)
 stego_train, stego_val, stego_test = split_class(stego_samples)
