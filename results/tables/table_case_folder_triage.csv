@@ -1,0 +1,2 @@
+folder_size,num_stego,num_trials,top5_hit_rate,top10_hit_rate,mean_rank,median_rank,best_rank
+100,10,50,1.0,1.0,17.377999999999997,12.8,1.54
