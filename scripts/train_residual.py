@@ -66,7 +66,7 @@ def main():
     criterion = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
-    epochs = 2
+    epochs = 10
     best_f1 = -1.0
     history = []
 

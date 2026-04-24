@@ -9,8 +9,10 @@ stego_dir = Path("data/BOSSBase/stego")
 split_dir = Path("data/splits")
 split_dir.mkdir(parents=True, exist_ok=True)
 
-cover_images = sorted(list(cover_dir.glob("*")))
-stego_images = sorted(list(stego_dir.glob("*")))
+valid_exts = [".pgm", ".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"]
+
+cover_images = sorted([p for p in cover_dir.iterdir() if p.suffix.lower() in valid_exts])
+stego_images = sorted([p for p in stego_dir.iterdir() if p.suffix.lower() in valid_exts])
 
 print("Cover images:", len(cover_images))
 print("Stego images:", len(stego_images))

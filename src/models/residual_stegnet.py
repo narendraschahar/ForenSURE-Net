@@ -59,10 +59,13 @@ class ResidualStegNet(nn.Module):
             nn.AdaptiveAvgPool2d((1, 1))
         )
 
-        self.fc = nn.Linear(256, 1)
+        self.classifier = nn.Sequential(
+            nn.Dropout(p=0.3),
+            nn.Linear(256, 1)
+        )
 
     def forward(self, x):
         x = self.hpf(x)
         x = self.features(x)
         x = x.flatten(1)
-        return self.fc(x)
+        return self.classifier(x)

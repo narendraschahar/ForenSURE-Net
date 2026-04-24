@@ -1,0 +1,10 @@
+{
+    "folder_size": 100,
+    "num_stego": 10,
+    "num_trials": 50,
+    "top5_hit_rate": 1.0,
+    "top10_hit_rate": 1.0,
+    "mean_rank": 17.377999999999997,
+    "median_rank": 12.8,
+    "best_rank": 1.54
+}
