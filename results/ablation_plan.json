@@ -1,0 +1,37 @@
+{
+    "baseline_cnn": {
+        "high_pass": false,
+        "calibration": false,
+        "uncertainty": false,
+        "triage": false,
+        "status": "ready"
+    },
+    "residual_stegnet": {
+        "high_pass": true,
+        "calibration": false,
+        "uncertainty": false,
+        "triage": false,
+        "status": "ready"
+    },
+    "residual_plus_calibration": {
+        "high_pass": true,
+        "calibration": true,
+        "uncertainty": false,
+        "triage": false,
+        "status": "ready"
+    },
+    "residual_plus_uncertainty": {
+        "high_pass": true,
+        "calibration": true,
+        "uncertainty": true,
+        "triage": false,
+        "status": "ready"
+    },
+    "forensure_net_full": {
+        "high_pass": true,
+        "calibration": true,
+        "uncertainty": true,
+        "triage": true,
+        "status": "ready"
+    }
+}
