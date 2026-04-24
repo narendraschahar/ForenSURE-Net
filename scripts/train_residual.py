@@ -66,8 +66,8 @@ def main():
     criterion = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
-    epochs = 10
-    best_f1 = 0.0
+    epochs = 2
+    best_f1 = -1.0
     history = []
 
     Path("experiments/checkpoints").mkdir(parents=True, exist_ok=True)

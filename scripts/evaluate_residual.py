@@ -18,6 +18,11 @@ from sklearn.metrics import (
 
 from src.datasets.bossbase_dataset import BOSSBaseDataset
 from src.models.residual_stegnet import ResidualStegNet
+from src.calibration.metrics import (
+    expected_calibration_error,
+    brier_score,
+    reliability_bins
+)
 
 
 def get_device():
@@ -33,6 +38,7 @@ def main():
     print("Using device:", device)
 
     test_dataset = BOSSBaseDataset("data/splits/test.txt", image_size=256)
+
     test_loader = DataLoader(
         test_dataset,
         batch_size=8,
@@ -41,12 +47,14 @@ def main():
     )
 
     model = ResidualStegNet().to(device)
+
     model.load_state_dict(
         torch.load(
             "experiments/checkpoints/residual_stegnet_best.pth",
             map_location=device
         )
     )
+
     model.eval()
 
     all_labels = []
@@ -69,7 +77,10 @@ def main():
         "precision": precision_score(all_labels, preds, zero_division=0),
         "recall": recall_score(all_labels, preds, zero_division=0),
         "f1": f1_score(all_labels, preds, zero_division=0),
-        "confusion_matrix": confusion_matrix(all_labels, preds).tolist()
+        "confusion_matrix": confusion_matrix(all_labels, preds).tolist(),
+        "ece": expected_calibration_error(all_labels, all_probs, n_bins=10),
+        "brier_score": brier_score(all_labels, all_probs),
+        "reliability_bins": reliability_bins(all_labels, all_probs, n_bins=10)
     }
 
     try:
@@ -77,7 +88,7 @@ def main():
     except ValueError:
         results["roc_auc"] = None
 
-    print("\nResidualStegNet Test Results")
+    print("\nResidualStegNet Test Results with Calibration Metrics")
     print(json.dumps(results, indent=4))
 
     print("\nClassification Report")
