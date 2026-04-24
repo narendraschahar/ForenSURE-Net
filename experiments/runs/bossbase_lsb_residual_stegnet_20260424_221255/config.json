@@ -1,0 +1,27 @@
+{
+  "experiment_name": "bossbase_lsb_residual_stegnet",
+  "dataset": "BOSSBase_1.01",
+  "cover_dir": "data/BOSSBase/cover",
+  "stego_dir": "data/BOSSBase/stego",
+  "stego_method": "LSB",
+  "payload_bpp": "full_lsb_replacement_pipeline_test",
+  "image_size": 256,
+  "split_seed": 42,
+  "split_ratio": {
+    "train": 0.70,
+    "validation": 0.15,
+    "test": 0.15
+  },
+  "model": "ResidualStegNet",
+  "high_pass_filters": true,
+  "dropout": 0.3,
+  "calibration": "temperature_scaling",
+  "uncertainty": "mc_dropout_10_passes",
+  "triage_formula": "P_stego * Reliability * (1 - Uncertainty)",
+  "optimizer": "Adam",
+  "learning_rate": 0.0001,
+  "epochs": 10,
+  "batch_size": 8,
+  "hardware_note": "MacBook Air M4 16GB RAM; MPS backend",
+  "research_status": "pipeline_verification_only_not_final_publication_result"
+}
