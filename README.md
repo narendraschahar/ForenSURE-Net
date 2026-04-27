@@ -36,6 +36,15 @@ To execute the entire end-to-end process (data splitting, training, calibration,
 python scripts/run_full_pipeline.py
 ```
 
+## Forensic Tool Usage
+
+You can use the built-in CLI to scan an arbitrary folder of images and generate a premium HTML Triage Report. This is designed for investigators running the tool locally.
+
+```bash
+# Example usage
+python forensure_cli.py scan --dir /path/to/suspect/drive --weights experiments/checkpoints/residual_stegnet_best.pth --out forensic_report.html
+```
+
 ## Kaggle Execution
 
 Please see `KAGGLE_RUN.md` and use the `notebooks/Kaggle_Pipeline.ipynb` for instructions on how to easily run this project in a Kaggle environment with GPU acceleration.
