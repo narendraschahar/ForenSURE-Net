@@ -30,16 +30,17 @@ def evaluate_model(model, loader, device):
     except ValueError:
         metrics["roc_auc"] = None
 
-    return metrics
+    return metrics, sum(all_probs)/len(all_probs) if all_probs else 0
 
 
 class Trainer:
-    def __init__(self, model, train_loader, val_loader, criterion, optimizer, device, save_dir="experiments/checkpoints"):
+    def __init__(self, model, train_loader, val_loader, criterion, optimizer, device, scheduler=None, save_dir="experiments/checkpoints"):
         self.model = model
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.criterion = criterion
         self.optimizer = optimizer
+        self.scheduler = scheduler
         self.device = device
         self.save_dir = Path(save_dir)
         self.save_dir.mkdir(parents=True, exist_ok=True)
@@ -66,7 +67,14 @@ class Trainer:
                 total_loss += loss.item()
 
             avg_loss = total_loss / len(self.train_loader)
-            val_metrics = evaluate_model(self.model, self.val_loader, self.device)
+            val_metrics, _ = evaluate_model(self.model, self.val_loader, self.device)
+
+            if self.scheduler:
+                # Assuming ReduceLROnPlateau based on val_f1
+                if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                    self.scheduler.step(val_metrics["f1"])
+                else:
+                    self.scheduler.step()
 
             record = {
                 "epoch": epoch + 1,

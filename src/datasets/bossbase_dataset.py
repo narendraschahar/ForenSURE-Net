@@ -7,20 +7,32 @@ from torchvision import transforms
 
 
 class BOSSBaseDataset(Dataset):
-    def __init__(self, split_file, image_size=256):
+    def __init__(self, split_file, image_size=256, is_train=False):
         self.samples = []
+        self.is_train = is_train
 
         with open(split_file, "r") as f:
             for line in f:
                 path, label = line.strip().split(",")
                 self.samples.append((path, int(label)))
 
-        self.transform = transforms.Compose([
+        transform_list = [
             transforms.Grayscale(num_output_channels=1),
-            transforms.Resize((image_size, image_size)),
+            transforms.Resize((image_size, image_size))
+        ]
+
+        if self.is_train:
+            transform_list.extend([
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip()
+            ])
+
+        transform_list.extend([
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5], std=[0.5])
         ])
+
+        self.transform = transforms.Compose(transform_list)
 
     def __len__(self):
         return len(self.samples)

@@ -20,8 +20,8 @@
   "triage_formula": "P_stego * Reliability * (1 - Uncertainty)",
   "optimizer": "Adam",
   "learning_rate": 0.0001,
-  "epochs": 10,
-  "batch_size": 8,
+  "epochs": 30,
+  "batch_size": 16,
   "hardware_note": "MacBook Air M4 16GB RAM; MPS backend",
   "research_status": "pipeline_verification_only_not_final_publication_result"
 }
