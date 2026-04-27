@@ -9,8 +9,7 @@ from torch.utils.data import DataLoader
 
 from src.datasets.bossbase_dataset import BOSSBaseDataset
 from src.models.residual_stegnet import ResidualStegNet
-from src.uncertainty.mc_dropout import mc_dropout_predict
-
+from src.triage.triage_scorer import score_triage
 
 def get_device():
     if torch.backends.mps.is_available():
@@ -19,14 +18,9 @@ def get_device():
         return torch.device("cuda")
     return torch.device("cpu")
 
-
 def load_temperature():
-    ckpt = torch.load(
-        "experiments/calibration/residual_temperature_scaler.pth",
-        map_location="cpu"
-    )
+    ckpt = torch.load("experiments/calibration/residual_temperature_scaler.pth", map_location="cpu")
     return float(ckpt["temperature"].item())
-
 
 def main():
     device = get_device()
@@ -36,35 +30,15 @@ def main():
     loader = DataLoader(dataset, batch_size=8, shuffle=False, num_workers=0)
 
     model = ResidualStegNet().to(device)
-    model.load_state_dict(
-        torch.load(
-            "experiments/checkpoints/residual_stegnet_best.pth",
-            map_location=device
-        )
-    )
+    model.load_state_dict(torch.load("experiments/checkpoints/residual_stegnet_best.pth", map_location=device))
 
     temperature = load_temperature()
 
     outputs = []
-
     idx_counter = 0
 
     for images, labels in loader:
-        mean_prob, uncertainty = mc_dropout_predict(
-            model,
-            images,
-            device=device,
-            mc_passes=10
-        )
-
-        # Reliability from temperature-scaled confidence
-        logits = torch.logit(
-            torch.tensor(mean_prob).clamp(1e-6, 1 - 1e-6)
-        ) / temperature
-
-        reliability = torch.sigmoid(logits).numpy()
-
-        triage = mean_prob * reliability * (1 - uncertainty)
+        mean_prob, reliability, uncertainty, triage = score_triage(model, images, device, temperature)
 
         for i in range(len(mean_prob)):
             outputs.append({
@@ -80,16 +54,14 @@ def main():
     outputs = sorted(outputs, key=lambda x: x["triage_score"], reverse=True)
 
     Path("results").mkdir(parents=True, exist_ok=True)
-
     with open("results/uncertainty_triage_outputs.json", "w") as f:
         json.dump(outputs, f, indent=4)
 
     print("Saved:", "results/uncertainty_triage_outputs.json")
-    print("Top 10 ranked suspicious images:\n")
+    print("Top 10 ranked suspicious images:\\n")
 
     for row in outputs[:10]:
         print(row)
-
 
 if __name__ == "__main__":
     main()
