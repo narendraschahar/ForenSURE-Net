@@ -40,7 +40,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     
     # Scheduler: Reduce learning rate when validation F1 stops improving
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=3, verbose=True)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=3)
 
     trainer = Trainer(model, train_loader, val_loader, criterion, optimizer, device, scheduler=scheduler)
     
