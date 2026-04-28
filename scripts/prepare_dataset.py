@@ -7,11 +7,11 @@ from generate_hill_stego import calculate_hill_costs, embed_payload
 from PIL import Image
 import numpy as np
 
-def prepare_tifs_dataset():
+def prepare_unified_dataset():
     base_dir = Path("data")
-    tifs_dir = base_dir / "TIFS_Dataset"
-    cover_dir = tifs_dir / "cover"
-    stego_dir = tifs_dir / "stego_hill_04"
+    dataset_dir = base_dir / "ForenSURE_Dataset"
+    cover_dir = dataset_dir / "cover"
+    stego_dir = dataset_dir / "stego_hill_04"
     
     cover_dir.mkdir(parents=True, exist_ok=True)
     stego_dir.mkdir(parents=True, exist_ok=True)
@@ -61,7 +61,7 @@ def prepare_tifs_dataset():
         stego_img = Image.fromarray(stego_arr, mode="L")
         stego_img.save(target_path)
         
-    print("TIFS Dataset Generation Complete! You are ready to train on Kaggle.")
+    print("Unified Dataset Generation Complete! You are ready to train on Kaggle.")
 
 if __name__ == "__main__":
-    prepare_tifs_dataset()
+    prepare_unified_dataset()

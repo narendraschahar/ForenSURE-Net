@@ -6,7 +6,7 @@
 LOGFILE="training_log.txt"
 
 echo "========================================="
-echo " Starting Local TIFS-Level SRNet Training "
+echo " Starting Local Advanced SRNet Training "
 echo "========================================="
 
 echo "[1/3] Generating 0.4 bpp Stego Dataset..."
