@@ -1,5 +1,7 @@
 import sys
 import json
+import argparse
+import random
 from pathlib import Path
 import torch
 import torch.nn as nn
@@ -19,18 +21,57 @@ def get_device():
     return torch.device("cpu")
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, default="configs/lsb_residual_config.json")
+    args = parser.parse_args()
+
     device = get_device()
     print("Using device:", device)
+    print("Loading config from:", args.config)
 
-    with open("configs/lsb_residual_config.json", "r") as f:
+    with open(args.config, "r") as f:
         config = json.load(f)
 
     epochs = config.get("epochs", 30)
     batch_size = config.get("batch_size", 16)
     lr = config.get("learning_rate", 1e-4)
 
-    train_dataset = BOSSBaseDataset("data/splits/train.txt", image_size=256, is_train=True)
-    val_dataset = BOSSBaseDataset("data/splits/val.txt", image_size=256, is_train=False)
+    # Dynamic Dataset Loading for Kaggle/Local Compatibility
+    cover_dir = Path(config["cover_dir"])
+    stego_dir = Path(config["stego_dir"])
+
+    print(f"Scanning for covers in: {cover_dir}")
+    print(f"Scanning for stegos in: {stego_dir}")
+
+    cover_images = list(cover_dir.glob("*.pgm"))
+    stego_images = list(stego_dir.glob("*.pgm"))
+
+    if not cover_images or not stego_images:
+        raise ValueError("Could not find images in the specified directories. Check Kaggle paths!")
+
+    print(f"Found {len(cover_images)} covers and {len(stego_images)} stegos.")
+
+    min_count = min(len(cover_images), len(stego_images))
+    cover_images = cover_images[:min_count]
+    stego_images = stego_images[:min_count]
+
+    samples = [(str(p), 0) for p in cover_images] + [(str(p), 1) for p in stego_images]
+    
+    # Use consistent seed for splitting
+    seed = config.get("split_seed", 42)
+    random.seed(seed)
+    random.shuffle(samples)
+
+    # 85/15 train/val split
+    split_idx = int(len(samples) * 0.85)
+    train_split = samples[:split_idx]
+    val_split = samples[split_idx:]
+
+    print(f"Train split: {len(train_split)} images")
+    print(f"Val split: {len(val_split)} images")
+
+    train_dataset = BOSSBaseDataset(train_split, image_size=256, is_train=True)
+    val_dataset = BOSSBaseDataset(val_split, image_size=256, is_train=False)
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
