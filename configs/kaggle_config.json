@@ -1,8 +1,8 @@
 {
   "experiment_name": "hill_srnet",
   "dataset": "ForenSURE_Unified_20K",
-  "cover_dir": "/kaggle/input/forensure-dataset-20k/ForenSURE_Dataset/cover",
-  "stego_dir": "/kaggle/input/forensure-dataset-20k/ForenSURE_Dataset/stego_hill_04",
+  "cover_dir": "/kaggle/input/datasets/narendrachahar/forensure-dataset-20k/ForenSURE_Dataset/cover",
+  "stego_dir": "/kaggle/input/datasets/narendrachahar/forensure-dataset-20k/ForenSURE_Dataset/stego_hill_04",
   "stego_method": "HILL",
   "payload_bpp": 0.4,
   "image_size": 256,
