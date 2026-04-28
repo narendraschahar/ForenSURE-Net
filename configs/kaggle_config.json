@@ -1,8 +1,8 @@
 {
-  "experiment_name": "tifs_hill_srnet",
-  "dataset": "TIFS_Unified_20K",
-  "cover_dir": "/kaggle/input/forensure-tifs-20k/cover",
-  "stego_dir": "/kaggle/input/forensure-tifs-20k/stego_hill_04",
+  "experiment_name": "hill_srnet",
+  "dataset": "ForenSURE_Unified_20K",
+  "cover_dir": "/kaggle/input/forensure-dataset-20k/cover",
+  "stego_dir": "/kaggle/input/forensure-dataset-20k/stego_hill_04",
   "stego_method": "HILL",
   "payload_bpp": 0.4,
   "image_size": 256,
@@ -23,5 +23,5 @@
   "epochs": 100,
   "batch_size": 16,
   "hardware_note": "Kaggle T4 x2 or P100",
-  "research_status": "Final TIFS Publication Run"
+  "research_status": "Final Publication Run"
 }
