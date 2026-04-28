@@ -1,0 +1,27 @@
+{
+  "experiment_name": "tifs_hill_srnet",
+  "dataset": "TIFS_Unified_20K",
+  "cover_dir": "/kaggle/input/forensure-tifs-20k/cover",
+  "stego_dir": "/kaggle/input/forensure-tifs-20k/stego_hill_04",
+  "stego_method": "HILL",
+  "payload_bpp": 0.4,
+  "image_size": 256,
+  "split_seed": 42,
+  "split_ratio": {
+    "train": 0.70,
+    "validation": 0.15,
+    "test": 0.15
+  },
+  "model": "ResidualStegNet",
+  "high_pass_filters": true,
+  "dropout": 0.3,
+  "calibration": "temperature_scaling",
+  "uncertainty": "mc_dropout_10_passes",
+  "triage_formula": "P_stego * Reliability * (1 - Uncertainty)",
+  "optimizer": "AdamW",
+  "learning_rate": 0.001,
+  "epochs": 100,
+  "batch_size": 16,
+  "hardware_note": "Kaggle T4 x2 or P100",
+  "research_status": "Final TIFS Publication Run"
+}
