@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForenSURE-Net</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0B0E14;
+            --glass: rgba(20, 25, 35, 0.7);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #00F0FF;
+            --accent-glow: rgba(0, 240, 255, 0.3);
+            --danger: #FF2A5F;
+            --success: #00FF88;
+            --text: #F0F4F8;
+            --text-dim: #8A9BB5;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at top, #162032 0%, var(--bg) 100%);
+            color: var(--text);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin: 0;
+            background: linear-gradient(90deg, var(--accent), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 1.2rem;
+            margin-top: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .upload-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 800px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .upload-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: var(--accent);
+            background: rgba(0, 240, 255, 0.05);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        button {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            box-shadow: 0 0 20px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+
+        .loader {
+            display: none;
+            margin-top: 30px;
+            color: var(--accent);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        /* Results Table */
+        .results-container {
+            display: none;
+            width: 100%;
+            max-width: 1000px;
+            margin-top: 50px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 30px;
+            backdrop-filter: blur(20px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            color: var(--text-dim);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .high-risk { background: rgba(255, 42, 95, 0.2); color: var(--danger); border: 1px solid var(--danger); }
+        .safe { background: rgba(0, 255, 136, 0.2); color: var(--success); border: 1px solid var(--success); }
+
+        .score-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .score-fill {
+            height: 100%;
+            transition: width 1s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>ForenSURE-Net</h1>
+        <div class="subtitle">AI Forensic Steganalysis Engine</div>
+    </div>
+
+    <div class="upload-card">
+        <h2>Upload Evidence</h2>
+        <p style="color: var(--text-dim);">Select up to 10 images or a ZIP archive (Max 1GB).</p>
+        
+        <div class="upload-area" id="drop-zone" onclick="document.getElementById('file-input').click()">
+            <img src="https://img.icons8.com/ios-filled/50/00F0FF/upload-to-cloud.png" alt="upload" style="margin-bottom: 15px;">
+            <div id="file-name">Click or drag files here to upload</div>
+        </div>
+        <input type="file" id="file-input" multiple accept="image/*,.zip">
+        
+        <button onclick="uploadFiles()">Scan Evidence</button>
+        <div class="loader" id="loader">Running SRNet Ensemble & Tile Scanning...</div>
+    </div>
+
+    <div class="results-container" id="results">
+        <h2>Triage Results</h2>
+        <table id="results-table">
+            <thead>
+                <tr>
+                    <th>Filename</th>
+                    <th>Algo Detected</th>
+                    <th>Risk Level</th>
+                    <th>Triage Score</th>
+                </tr>
+            </thead>
+            <tbody id="results-body">
+                <!-- Data populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('file-input');
+        const dropZone = document.getElementById('drop-zone');
+        const fileNameDiv = document.getElementById('file-name');
+
+        fileInput.addEventListener('change', (e) => {
+            if(e.target.files.length > 0) {
+                fileNameDiv.innerText = `${e.target.files.length} file(s) selected ready for scan.`;
+            }
+        });
+
+        async function uploadFiles() {
+            if (fileInput.files.length === 0) return alert("Please select files first.");
+            
+            const formData = new FormData();
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append("files", fileInput.files[i]);
+            }
+
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/scan', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                document.getElementById('loader').style.display = 'none';
+                
+                if (data.error) {
+                    alert("Error: " + data.error);
+                    return;
+                }
+
+                renderResults(data.results);
+            } catch (error) {
+                alert("Failed to connect to scanner.");
+                document.getElementById('loader').style.display = 'none';
+            }
+        }
+
+        function renderResults(results) {
+            const tbody = document.getElementById('results-body');
+            tbody.innerHTML = '';
+            
+            if(results.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No valid images found in upload.</td></tr>';
+            }
+
+            results.forEach(item => {
+                const isDanger = item.triage_score > 0.8;
+                const riskBadge = isDanger ? '<span class="badge high-risk">High Risk</span>' : '<span class="badge safe">Clean</span>';
+                const scoreColor = isDanger ? 'var(--danger)' : 'var(--success)';
+                
+                const row = `
+                    <tr>
+                        <td style="font-weight: 600; color: #fff;">${item.filename}</td>
+                        <td style="color: var(--accent);">${item.suspected_algorithm}</td>
+                        <td>${riskBadge}</td>
+                        <td>
+                            <div style="font-weight: 800;">${item.triage_score.toFixed(4)}</div>
+                            <div class="score-bar">
+                                <div class="score-fill" style="width: ${item.triage_score * 100}%; background: ${scoreColor};"></div>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

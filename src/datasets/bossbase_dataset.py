@@ -18,7 +18,7 @@ class BOSSBaseDataset(Dataset):
 
         transform_list = [
             transforms.Grayscale(num_output_channels=1),
-            transforms.Resize((image_size, image_size))
+            transforms.RandomCrop((image_size, image_size), pad_if_needed=True)
         ]
 
         if self.is_train:

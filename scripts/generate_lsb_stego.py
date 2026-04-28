@@ -18,11 +18,16 @@ for img_path in tqdm(cover_images, desc="Generating LSB stego images"):
     img = Image.open(img_path).convert("L")
     arr = np.array(img, dtype=np.uint8)
 
+    bpp = 0.4
+    
     # Random payload bits
     payload = np.random.randint(0, 2, size=arr.shape, dtype=np.uint8)
 
-    # Replace least significant bit
-    stego_arr = (arr & 254) | payload
+    # Create a mask to only alter `bpp` fraction of pixels
+    mask = np.random.rand(*arr.shape) < bpp
+
+    # Replace least significant bit only where mask is true
+    stego_arr = np.where(mask, (arr & 254) | payload, arr)
 
     stego_img = Image.fromarray(stego_arr, mode="L")
     stego_img.save(stego_dir / img_path.name)

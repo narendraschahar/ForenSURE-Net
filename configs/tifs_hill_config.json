@@ -1,9 +1,9 @@
 {
-  "experiment_name": "bossbase_lsb_residual_stegnet",
-  "dataset": "BOSSBase_1.01",
-  "cover_dir": "data/BOSSBase/cover",
-  "stego_dir": "data/BOSSBase/stego",
-  "stego_method": "LSB",
+  "experiment_name": "tifs_hill_srnet",
+  "dataset": "TIFS_Unified_20K",
+  "cover_dir": "data/TIFS_Dataset/cover",
+  "stego_dir": "data/TIFS_Dataset/stego_hill_04",
+  "stego_method": "HILL",
   "payload_bpp": 0.4,
   "image_size": 256,
   "split_seed": 42,
@@ -18,10 +18,10 @@
   "calibration": "temperature_scaling",
   "uncertainty": "mc_dropout_10_passes",
   "triage_formula": "P_stego * Reliability * (1 - Uncertainty)",
-  "optimizer": "Adam",
+  "optimizer": "AdamW",
   "learning_rate": 0.001,
-  "epochs": 50,
+  "epochs": 100,
   "batch_size": 16,
-  "hardware_note": "MacBook Air M4 16GB RAM; MPS backend",
-  "research_status": "pipeline_verification_only_not_final_publication_result"
+  "hardware_note": "Kaggle T4 x2 or M4 16GB",
+  "research_status": "Final TIFS Publication Run"
 }
