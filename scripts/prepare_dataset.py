@@ -11,10 +11,12 @@ def prepare_unified_dataset():
     base_dir = Path("data")
     dataset_dir = base_dir / "ForenSURE_Dataset"
     cover_dir = dataset_dir / "cover"
-    stego_dir = dataset_dir / "stego_hill_04"
+    stego_dir_04 = dataset_dir / "stego_hill_04"
+    stego_dir_10 = dataset_dir / "stego_hill_10"
     
     cover_dir.mkdir(parents=True, exist_ok=True)
-    stego_dir.mkdir(parents=True, exist_ok=True)
+    stego_dir_04.mkdir(parents=True, exist_ok=True)
+    stego_dir_10.mkdir(parents=True, exist_ok=True)
     
     # Use standard dataset folders
     bossbase_dir = base_dir / "BOSSBase" / "cover"
@@ -42,24 +44,28 @@ def prepare_unified_dataset():
         if not target.exists():
             shutil.copy(f, target)
 
-    # 2. Generate HILL Stego for all 20,000
+    # 2. Generate HILL Stego
     all_covers = list(cover_dir.glob("*.pgm"))
     print(f"Generating Advanced HILL Steganography for {len(all_covers)} images...")
     
-    bpp = 0.4
-    for img_path in tqdm(all_covers, desc="Embedding HILL"):
-        target_path = stego_dir / img_path.name
-        if target_path.exists():
-            continue # Skip if already done
+    for img_path in tqdm(all_covers, desc="Embedding HILL (1.0 bpp & 0.4 bpp)"):
+        target_04 = stego_dir_04 / img_path.name
+        target_10 = stego_dir_10 / img_path.name
+        
+        if target_04.exists() and target_10.exists():
+            continue
             
         img = Image.open(img_path).convert("L")
         arr = np.array(img, dtype=np.uint8)
-        
         costs = calculate_hill_costs(arr)
-        stego_arr = embed_payload(arr, costs, bpp)
         
-        stego_img = Image.fromarray(stego_arr, mode="L")
-        stego_img.save(target_path)
+        if not target_10.exists():
+            stego_arr_10 = embed_payload(arr, costs, 1.0)
+            Image.fromarray(stego_arr_10, mode="L").save(target_10)
+            
+        if not target_04.exists():
+            stego_arr_04 = embed_payload(arr, costs, 0.4)
+            Image.fromarray(stego_arr_04, mode="L").save(target_04)
         
     print("Unified Dataset Generation Complete! You are ready to train on Kaggle.")
 

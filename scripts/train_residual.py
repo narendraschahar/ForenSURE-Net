@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-from src.datasets.bossbase_dataset import BOSSBaseDataset
+from src.datasets.bossbase_dataset import BOSSBasePairedDataset
 from src.models.residual_stegnet import ResidualStegNet
 from src.training.trainer import Trainer
 
@@ -20,9 +20,15 @@ def get_device():
         return torch.device("cuda")
     return torch.device("cpu")
 
+def paired_collate_fn(batch):
+    images = torch.cat([item[0] for item in batch], dim=0)
+    labels = torch.cat([item[1] for item in batch], dim=0)
+    return images, labels
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, default="configs/lsb_residual_config.json")
+    parser.add_argument("--config", type=str, required=True, help="Path to config file")
+    parser.add_argument("--resume", type=str, default=None, help="Path to pre-trained weights for Curriculum Phase 2")
     args = parser.parse_args()
 
     device = get_device()
@@ -36,47 +42,54 @@ def main():
     batch_size = config.get("batch_size", 16)
     lr = config.get("learning_rate", 1e-4)
 
-    # Dynamic Dataset Loading for Kaggle/Local Compatibility
     cover_dir = Path(config["cover_dir"])
     stego_dir = Path(config["stego_dir"])
 
     print(f"Scanning for covers in: {cover_dir}")
     print(f"Scanning for stegos in: {stego_dir}")
 
-    cover_images = list(cover_dir.glob("*.pgm"))
-    stego_images = list(stego_dir.glob("*.pgm"))
-
-    if not cover_images or not stego_images:
-        raise ValueError("Could not find images in the specified directories. Check Kaggle paths!")
-
-    print(f"Found {len(cover_images)} covers and {len(stego_images)} stegos.")
-
-    min_count = min(len(cover_images), len(stego_images))
-    cover_images = cover_images[:min_count]
-    stego_images = stego_images[:min_count]
-
-    samples = [(str(p), 0) for p in cover_images] + [(str(p), 1) for p in stego_images]
+    # For paired dataset, we just need a list of filenames that exist in both
+    cover_images = {p.name for p in cover_dir.glob("*.pgm")}
+    stego_images = {p.name for p in stego_dir.glob("*.pgm")}
     
+    valid_names = list(cover_images.intersection(stego_images))
+
+    if not valid_names:
+        raise ValueError("Could not find matching Cover/Stego pairs in the directories. Check Kaggle paths!")
+
+    print(f"Found {len(valid_names)} perfect Cover/Stego pairs.")
+
     # Use consistent seed for splitting
     seed = config.get("split_seed", 42)
     random.seed(seed)
-    random.shuffle(samples)
+    random.shuffle(valid_names)
 
     # 85/15 train/val split
-    split_idx = int(len(samples) * 0.85)
-    train_split = samples[:split_idx]
-    val_split = samples[split_idx:]
+    split_idx = int(len(valid_names) * 0.85)
+    train_split = valid_names[:split_idx]
+    val_split = valid_names[split_idx:]
 
-    print(f"Train split: {len(train_split)} images")
-    print(f"Val split: {len(val_split)} images")
+    print(f"Train pairs: {len(train_split)} (Yields {len(train_split)*2} images per epoch)")
+    print(f"Val pairs: {len(val_split)} (Yields {len(val_split)*2} images per eval)")
 
-    train_dataset = BOSSBaseDataset(train_split, image_size=256, is_train=True)
-    val_dataset = BOSSBaseDataset(val_split, image_size=256, is_train=False)
+    train_dataset = BOSSBasePairedDataset(cover_dir, stego_dir, train_split, image_size=256, is_train=True)
+    val_dataset = BOSSBasePairedDataset(cover_dir, stego_dir, val_split, image_size=256, is_train=False)
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
+    # Note: If batch_size is 16, the model actually receives 32 images (16 covers + 16 stegos)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0, collate_fn=paired_collate_fn)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0, collate_fn=paired_collate_fn)
 
     model = ResidualStegNet(dropout_rate=config.get("dropout", 0.3)).to(device)
+
+    # Resume from checkpoint if provided (Curriculum Phase 2)
+    if args.resume:
+        print(f"--- CURRICULUM LEARNING: Loading Phase 1 Weights from {args.resume} ---")
+        checkpoint = torch.load(args.resume, map_location=device)
+        if "model_state_dict" in checkpoint:
+            model.load_state_dict(checkpoint["model_state_dict"])
+        else:
+            model.load_state_dict(checkpoint)
+
     criterion = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     
@@ -85,12 +98,13 @@ def main():
 
     trainer = Trainer(model, train_loader, val_loader, criterion, optimizer, device, scheduler=scheduler)
     
+    save_name = config.get("save_name", "residual_stegnet_best.pth")
     print(f"Starting training for {epochs} epochs...")
     trainer.train(
         epochs=epochs,
-        save_name="residual_stegnet_best.pth",
+        save_name=save_name,
         save_best=True,
-        history_file="results/residual_stegnet_train_history.json"
+        history_file=f"results/{save_name}_history.json"
     )
     print("\\nTraining completed.")
 
