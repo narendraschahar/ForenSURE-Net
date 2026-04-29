@@ -1,0 +1,16 @@
+{
+  "experiment_name": "hill_srnet_phase1",
+  "dataset": "ForenSURE_Unified_20K",
+  "cover_dir": "/kaggle/input/datasets/narendrachahar/forensure-dataset-20k/ForenSURE_Dataset/cover",
+  "stego_dir": "/kaggle/input/datasets/narendrachahar/forensure-dataset-20k/ForenSURE_Dataset/stego_hill_10",
+  "stego_method": "HILL",
+  "payload_bpp": 1.0,
+  "image_size": 256,
+  "split_seed": 42,
+  "model": "ResidualStegNet",
+  "dropout": 0.3,
+  "learning_rate": 0.0001,
+  "epochs": 10,
+  "batch_size": 16,
+  "save_name": "srnet_phase1_10bpp.pth"
+}
