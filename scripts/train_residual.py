@@ -29,6 +29,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", type=str, required=True, help="Path to config file")
     parser.add_argument("--resume", type=str, default=None, help="Path to pre-trained weights for Curriculum Phase 2")
+    parser.add_argument("--debug", action="store_true", help="Use only 500 pairs for quick sanity check")
     args = parser.parse_args()
 
     device = get_device()
@@ -56,6 +57,10 @@ def main():
 
     if not valid_names:
         raise ValueError("Could not find matching Cover/Stego pairs in the directories. Check Kaggle paths!")
+
+    if args.debug:
+        valid_names = valid_names[:500]
+        print(f"--- DEBUG MODE: Using only {len(valid_names)} pairs for fast verification ---")
 
     print(f"Found {len(valid_names)} perfect Cover/Stego pairs.")
 
