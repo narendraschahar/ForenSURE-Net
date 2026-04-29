@@ -58,10 +58,14 @@ class Trainer:
                 labels = labels.to(self.device)
 
                 logits = self.model(images).squeeze(1)
-                loss = self.criterion(logits, labels)
+                # Label smoothing: prevents overconfident collapse
+                smooth_labels = labels * 0.9 + 0.05
+                loss = self.criterion(logits, smooth_labels)
 
                 self.optimizer.zero_grad()
                 loss.backward()
+                # Gradient clipping: prevents runaway gradients causing collapse
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
                 self.optimizer.step()
 
                 total_loss += loss.item()
