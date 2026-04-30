@@ -1,0 +1,12 @@
+{
+  "experiment_name": "forensure_hill10_verify",
+  "cover_dir": "data/ForenSURE_Dataset/cover",
+  "stego_dir": "data/ForenSURE_Dataset/stego_hill_10",
+  "image_size": 256,
+  "split_seed": 42,
+  "dropout": 0.3,
+  "learning_rate": 0.01,
+  "epochs": 20,
+  "batch_size": 16,
+  "save_name": "forensure_hill10.pth"
+}

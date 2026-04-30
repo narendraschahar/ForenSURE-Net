@@ -1,35 +1,36 @@
-from pathlib import Path
-from PIL import Image
+"""
+generate_lsb_stego.py — Generate LSB steganography for pipeline verification.
+"""
 import numpy as np
+from PIL import Image
+from pathlib import Path
 from tqdm import tqdm
 
-cover_dir = Path("data/BOSSBase/cover")
-stego_dir = Path("data/BOSSBase/stego")
-stego_dir.mkdir(parents=True, exist_ok=True)
+def embed_lsb(img_arr: np.ndarray, payload_bpp: float = 0.5, seed: int = 0) -> np.ndarray:
+    rng  = np.random.default_rng(seed)
+    flat = img_arr.flatten().astype(np.uint8)
+    n_embed  = int(flat.size * payload_bpp)
+    positions = rng.choice(flat.size, n_embed, replace=False)
+    bits      = rng.integers(0, 2, n_embed, dtype=np.uint8)
+    flat[positions] = (flat[positions] & 0xFE) | bits
+    return flat.reshape(img_arr.shape)
 
-cover_images = sorted(list(cover_dir.glob("*.pgm")))
+def main():
+    cover_dir = Path("data/ForenSURE_Dataset/cover")
+    stego_dir = Path("data/ForenSURE_Dataset/stego_lsb_05")
+    stego_dir.mkdir(parents=True, exist_ok=True)
+    covers = sorted(cover_dir.glob("*.pgm"))
+    print(f"Generating LSB stego for {len(covers)} images...")
+    for i, path in enumerate(tqdm(covers)):
+        arr   = np.array(Image.open(path).convert("L"), dtype=np.uint8)
+        stego = embed_lsb(arr, payload_bpp=0.5, seed=i)
+        Image.fromarray(stego, mode="L").save(stego_dir / path.name)
+    print("\n=== Sanity Check ===")
+    for path in sorted(cover_dir.glob("*.pgm"))[:3]:
+        cover = np.array(Image.open(path)).astype(np.float32)
+        stego = np.array(Image.open(stego_dir / path.name)).astype(np.float32)
+        changed = int(np.sum(cover != stego))
+        print(f"{path.name}: {changed} changed pixels ({changed/cover.size*100:.1f}%) — expected ~25%")
 
-if len(cover_images) == 0:
-    raise ValueError("No .pgm images found in data/BOSSBase/cover")
-
-print("Cover images found:", len(cover_images))
-
-for img_path in tqdm(cover_images, desc="Generating LSB stego images"):
-    img = Image.open(img_path).convert("L")
-    arr = np.array(img, dtype=np.uint8)
-
-    bpp = 0.4
-    
-    # Random payload bits
-    payload = np.random.randint(0, 2, size=arr.shape, dtype=np.uint8)
-
-    # Create a mask to only alter `bpp` fraction of pixels
-    mask = np.random.rand(*arr.shape) < bpp
-
-    # Replace least significant bit only where mask is true
-    stego_arr = np.where(mask, (arr & 254) | payload, arr)
-
-    stego_img = Image.fromarray(stego_arr, mode="L")
-    stego_img.save(stego_dir / img_path.name)
-
-print("Stego images saved to:", stego_dir)
+if __name__ == "__main__":
+    main()

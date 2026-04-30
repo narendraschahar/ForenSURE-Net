@@ -1,0 +1,12 @@
+{
+  "experiment_name": "forensure_lsb_verify",
+  "cover_dir": "data/ForenSURE_Dataset/cover",
+  "stego_dir": "data/ForenSURE_Dataset/stego_lsb_05",
+  "image_size": 256,
+  "split_seed": 42,
+  "dropout": 0.3,
+  "learning_rate": 0.01,
+  "epochs": 10,
+  "batch_size": 16,
+  "save_name": "forensure_lsb.pth"
+}
